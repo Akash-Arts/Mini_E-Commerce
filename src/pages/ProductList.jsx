@@ -33,7 +33,7 @@ export default function ProductList() {
 
         const fetchData = async () => {
             try {
-                const res = await axios.get('https://fakestoreapi.com/productsss')
+                const res = await axios.get('https://fakestoreapi.com/products')
                 if (!active) return
                 setProducts(res.data)
             } catch (err) {
