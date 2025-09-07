@@ -9,7 +9,7 @@ export default function SearchBar({ value, onChange }) {
             fullWidth
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="Search products by title..."
+            placeholder="Search product"
             InputProps={{
                 startAdornment: (
                     <InputAdornment position="start">

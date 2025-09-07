@@ -19,7 +19,12 @@ export default function ProductList() {
 
     const [query, setQuery] = useState('')
     const [category, setCategory] = useState('all')
-    const [categories, setCategories] = useState([])
+
+    // categories list (derived from products or hardcoded)
+    const categories = useMemo(() => {
+        const unique = [...new Set(products.map(p => p.category))]
+        return ['all', ...unique]
+    }, [products])
 
     useEffect(() => {
         let active = true
@@ -28,15 +33,27 @@ export default function ProductList() {
 
         const fetchData = async () => {
             try {
-                const [pRes, cRes] = await Promise.all([
-                    axios.get('https://fakestoreapi.com/products'),
-                    axios.get('https://fakestoreapi.com/products/categories')
-                ])
+                const res = await axios.get('https://fakestoreapi.com/productsss')
                 if (!active) return
-                setProducts(pRes.data)
-                setCategories(cRes.data)
+                setProducts(res.data)
             } catch (err) {
-                setError(err.message || 'Something went wrong')
+                if (!active) return
+                if (err.response) {
+                    // Server responded with error status
+                    if (err.response.status === 404) {
+                        setError('Products not found.')
+                    } else if (err.response.status === 401) {
+                        setError('Unauthorized. Please log in.')
+                    } else {
+                        setError('Unable to load products. Please try again later.')
+                    }
+                } else if (err.request) {
+                    // No response received
+                    setError('Network error. Please check your connection.')
+                } else {
+                    // Something else went wrong
+                    setError('An unexpected error occurred.')
+                }
             } finally {
                 if (active) setLoading(false)
             }
@@ -71,17 +88,25 @@ export default function ProductList() {
                 </Box>
             )}
 
-            {error && <Alert severity="error">{error}</Alert>}
-
+            {/* Error */}
+            {error && (
+                <Box component='p' sx={{ display: 'flex', justifyContent: 'center', py: 6, fontSize: { xs: 16, md: 20 } }}>
+                    {error}
+                </Box>
+            )}
+            {/* No products */}
             {!loading && !error && filtered.length === 0 && (
-                <Alert severity="info">No products found</Alert>
+                <Box component='p' sx={{ display: 'flex', justifyContent: 'center', py: 6, fontSize: { xs: 16, md: 20 } }}>
+                    No products found
+                </Box>
             )}
 
+            {/* Product grid */}
             {!loading && !error && filtered.length > 0 && (
                 <Grid container spacing={2}>
                     {filtered.map((product) => (
                         <Grid
-                            key={product.id}
+                            key={`${product.id}-${product.title}`}
                             size={{ xs: 12, sm: 4, md: 3 }}
                         >
                             <ProductCard product={product} />
